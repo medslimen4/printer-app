@@ -178,25 +178,19 @@ class _MyHomePageState extends State<MyHomePage> {
         _isConnecting = false;
       });
 
-      // Log all services and characteristics to find the correct UUIDs
-      await _bluetoothService.discoverAndLogServices(_printerDevice);
-
-      // We will re-enable this after we have the correct UUIDs
-      /*
-      // These UUIDs are placeholders and need to be found from the sniffing log.
-      const serviceUuid = '00001800-0000-1000-8000-00805f9b34fb';
-      const characteristicUuid = '00002a00-0000-1000-8000-00805f9b34fb';
+      // Use the correct UUIDs we discovered
+      const serviceUuid = "0000ff00-0000-1000-8000-00805f9b34fb";
+      const characteristicUuid = "0000ff02-0000-1000-8000-00805f9b34fb";
 
       final command = CommandBuilder.buildWifiCommand(ssid, password);
       await _bluetoothService.sendData(
           _printerDevice, serviceUuid, characteristicUuid, command);
-      */
 
       await _bluetoothService.disconnect(_printerDevice);
 
-      _showSuccessDialog('Service discovery complete! Check the debug console.');
+      _showSuccessDialog('Wi-Fi credentials sent successfully!');
     } catch (e) {
-      _showErrorDialog('Error: $e');
+      _showErrorDialog('Error sending credentials: $e');
     } finally {
       setState(() {
         _isSending = false;
