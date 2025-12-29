@@ -13,6 +13,14 @@ This document outlines the plan for creating a Flutter application to connect to
 *   **Wi-Fi Credential Input**: The user will be able to enter the Wi-Fi SSID and password.
 *   **Command Sending**: The app will construct and send the appropriate command to the printer to set the Wi-Fi credentials.
 
+## Visual Design
+
+*   **Theme**: A modern, clean theme with a consistent color scheme and typography.
+*   **Layout**: A visually balanced layout with clear spacing and a responsive design.
+*   **Iconography**: Use of icons to improve usability and visual appeal.
+*   **Components**: Use of Material Design components like `Card`, `ElevatedButton`, and `TextField` with custom styling.
+*   **Typography**: Use of the `google_fonts` package for a more professional look.
+
 ## Project Structure
 
 *   `lib/main.dart`: The main entry point of the application.
