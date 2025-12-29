@@ -39,7 +39,11 @@ class _MyHomePageState extends State<MyHomePage> {
   final AppBluetoothService _bluetoothService = AppBluetoothService();
   final TextEditingController _ssidController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  BluetoothDevice? _selectedDevice;
+
+  // Connect directly to the printer using its MAC address
+  final BluetoothDevice _printerDevice =
+      BluetoothDevice.fromId('C0:29:F6:DC:EB:BE');
+
   bool _isConnecting = false;
   bool _isSending = false;
 
@@ -70,6 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildDeviceCard() {
+    // Display hardcoded printer information instead of scanning
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -78,32 +83,15 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           children: [
             Text(
-              'Bluetooth Device',
+              'Target Printer',
               style: GoogleFonts.lato(
                   fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            if (_selectedDevice != null)
-              ListTile(
-                leading: const Icon(Icons.print, color: Colors.indigo),
-                title: Text(_selectedDevice!.name.isNotEmpty
-                    ? _selectedDevice!.name
-                    : 'Unknown Device'),
-                subtitle: Text(_selectedDevice!.remoteId.toString()),
-              ),
-            const SizedBox(height: 10),
-            ElevatedButton.icon(
-              onPressed: () {
-                _bluetoothService.startScan();
-                _showDeviceSelectionDialog();
-              },
-              icon: const Icon(Icons.bluetooth_searching),
-              label: const Text('Scan for Printers'),
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
+            ListTile(
+              leading: const Icon(Icons.print, color: Colors.indigo),
+              title: const Text('Rongta Printer'),
+              subtitle: Text(_printerDevice.remoteId.toString()),
             ),
           ],
         ),
@@ -168,79 +156,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _showDeviceSelectionDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Select a Printer'),
-          content: StreamBuilder<List<ScanResult>>(
-            stream: _bluetoothService.scanResults,
-            builder: (context, snapshot) {
-              return StreamBuilder<bool>(
-                stream: _bluetoothService.isScanning,
-                initialData: true,
-                builder: (context, isScanningSnapshot) {
-                  final isScanning = isScanningSnapshot.data!;
-                  final scanResults = snapshot.data ?? [];
-
-                  if (isScanning && scanResults.isEmpty) {
-                    return const Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 16),
-                          Text("Scanning for devices..."),
-                        ],
-                      ),
-                    );
-                  }
-
-                  if (!isScanning && scanResults.isEmpty) {
-                    return const Center(
-                      child: Text("No devices found. Please try again."),
-                    );
-                  }
-
-                  return SizedBox(
-                    width: double.maxFinite,
-                    child: ListView.builder(
-                      itemCount: scanResults.length,
-                      itemBuilder: (context, index) {
-                        final device = scanResults[index].device;
-                        return ListTile(
-                          leading: const Icon(Icons.bluetooth, color: Colors.blue),
-                          title: Text(device.name.isNotEmpty
-                              ? device.name
-                              : 'Unknown Device'),
-                          subtitle: Text(device.remoteId.toString()),
-                          onTap: () {
-                            setState(() {
-                              _selectedDevice = device;
-                            });
-                            Navigator.of(context).pop();
-                            _bluetoothService.stopScan();
-                          },
-                        );
-                      },
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _sendWifiCredentials() async {
-    if (_selectedDevice == null) {
-      _showErrorDialog('No printer selected.');
-      return;
-    }
-
     final ssid = _ssidController.text;
     final password = _passwordController.text;
 
@@ -257,7 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         _isConnecting = true;
       });
-      await _bluetoothService.connect(_selectedDevice!);
+      await _bluetoothService.connect(_printerDevice);
       setState(() {
         _isConnecting = false;
       });
@@ -268,9 +184,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
       final command = CommandBuilder.buildWifiCommand(ssid, password);
       await _bluetoothService.sendData(
-          _selectedDevice!, serviceUuid, characteristicUuid, command);
+          _printerDevice, serviceUuid, characteristicUuid, command);
 
-      await _bluetoothService.disconnect(_selectedDevice!);
+      await _bluetoothService.disconnect(_printerDevice);
 
       _showSuccessDialog('Wi-Fi credentials sent successfully!');
     } catch (e) {

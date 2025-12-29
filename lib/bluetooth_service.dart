@@ -5,33 +5,8 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class AppBluetoothService {
-  Stream<List<ScanResult>> get scanResults => FlutterBluePlus.scanResults;
-  Stream<bool> get isScanning => FlutterBluePlus.isScanning;
-
-  Future<void> startScan() async {
-    if (kDebugMode) {
-      print("Starting Bluetooth scan...");
-    }
-    await _requestPermissions();
-    // Increased scan duration
-    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 10));
-    scanResults.listen((results) {
-      if (kDebugMode) {
-        print("Found ${results.length} devices");
-      }
-      for (ScanResult r in results) {
-        if (kDebugMode) {
-          print('${r.device.name} found! rssi: ${r.rssi}');
-        }
-      }
-    });
-  }
-
-  Future<void> stopScan() async {
-    await FlutterBluePlus.stopScan();
-  }
-
   Future<void> connect(BluetoothDevice device) async {
+    await _requestPermissions();
     await device.connect();
   }
 
