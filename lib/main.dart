@@ -177,31 +177,56 @@ class _MyHomePageState extends State<MyHomePage> {
           content: StreamBuilder<List<ScanResult>>(
             stream: _bluetoothService.scanResults,
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              return SizedBox(
-                width: double.maxFinite,
-                child: ListView.builder(
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, index) {
-                    final device = snapshot.data![index].device;
-                    return ListTile(
-                      leading: const Icon(Icons.bluetooth, color: Colors.blue),
-                      title: Text(device.name.isNotEmpty
-                          ? device.name
-                          : 'Unknown Device'),
-                      subtitle: Text(device.remoteId.toString()),
-                      onTap: () {
-                        setState(() {
-                          _selectedDevice = device;
-                        });
-                        Navigator.of(context).pop();
-                        _bluetoothService.stopScan();
-                      },
+              return StreamBuilder<bool>(
+                stream: _bluetoothService.isScanning,
+                initialData: true,
+                builder: (context, isScanningSnapshot) {
+                  final isScanning = isScanningSnapshot.data!;
+                  final scanResults = snapshot.data ?? [];
+
+                  if (isScanning && scanResults.isEmpty) {
+                    return const Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text("Scanning for devices..."),
+                        ],
+                      ),
                     );
-                  },
-                ),
+                  }
+
+                  if (!isScanning && scanResults.isEmpty) {
+                    return const Center(
+                      child: Text("No devices found. Please try again."),
+                    );
+                  }
+
+                  return SizedBox(
+                    width: double.maxFinite,
+                    child: ListView.builder(
+                      itemCount: scanResults.length,
+                      itemBuilder: (context, index) {
+                        final device = scanResults[index].device;
+                        return ListTile(
+                          leading: const Icon(Icons.bluetooth, color: Colors.blue),
+                          title: Text(device.name.isNotEmpty
+                              ? device.name
+                              : 'Unknown Device'),
+                          subtitle: Text(device.remoteId.toString()),
+                          onTap: () {
+                            setState(() {
+                              _selectedDevice = device;
+                            });
+                            Navigator.of(context).pop();
+                            _bluetoothService.stopScan();
+                          },
+                        );
+                      },
+                    ),
+                  );
+                },
               );
             },
           ),

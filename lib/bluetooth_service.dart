@@ -6,13 +6,15 @@ import 'package:permission_handler/permission_handler.dart';
 
 class AppBluetoothService {
   Stream<List<ScanResult>> get scanResults => FlutterBluePlus.scanResults;
+  Stream<bool> get isScanning => FlutterBluePlus.isScanning;
 
   Future<void> startScan() async {
     if (kDebugMode) {
       print("Starting Bluetooth scan...");
     }
     await _requestPermissions();
-    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 4));
+    // Increased scan duration
+    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 10));
     scanResults.listen((results) {
       if (kDebugMode) {
         print("Found ${results.length} devices");
