@@ -26,9 +26,9 @@ class AppBluetoothService {
   Future<void> sendData(BluetoothDevice device, String serviceUuid,
       String characteristicUuid, List<int> data) async {
     List<BluetoothService> services = await device.discoverServices();
-    var service = services.firstWhere((s) => s.uuid.toString() == serviceUuid);
+    var service = services.firstWhere((s) => s.uuid.toString().toLowerCase() == serviceUuid.toLowerCase());
     var characteristic =
-        service.characteristics.firstWhere((c) => c.uuid.toString() == characteristicUuid);
+        service.characteristics.firstWhere((c) => c.uuid.toString().toLowerCase() == characteristicUuid.toLowerCase());
     
     if (kDebugMode) {
       print('Writing to characteristic ${characteristic.uuid}');
